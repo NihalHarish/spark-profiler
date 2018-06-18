@@ -39,10 +39,10 @@ private case class SparkRDD(`RDD ID`: Int,
                     `Memory Size`: Long,
                     `Disk Size`: Long)
 
-private case class StorageLevel(`Use Disk`: Boolean,
-                        `Use Memory`: Boolean,
-                        `Use ExternalBlockStore`: Boolean,
-                        `Deserialized`: Boolean,
+private case class StorageLevel(`Use Disk`: Boolean = false,
+                        `Use Memory`: Boolean = false,
+                        `Use ExternalBlockStore`: Boolean = false,
+                        `Deserialized`: Boolean = false,
                         `Replication`: Int
                        )
 

@@ -102,4 +102,3 @@ private case class SparkShuffleReadMetrics(`Remote Blocks Fetched`: Long,
                                    `Local Bytes Read`: Long,
                                    `Total Records Read`: Long
                                   )
-

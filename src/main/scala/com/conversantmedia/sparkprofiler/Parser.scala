@@ -7,7 +7,7 @@ import org.json4s.jackson.JsonMethods._
 /**
   * Parser does all the work of parsing events from the application events file.
   */
-object Parser {
+object  Parser {
 
   def parseJSON[T](json: String)(implicit t: Manifest[T]): T = {
     implicit val formats = DefaultFormats
@@ -81,14 +81,14 @@ object Parser {
     val end = events.filter(_.contains("SparkListenerJobEnd")).
       map(string => parseJSON[SparkJobEnd](string))
 
-    start.joinWith(end, start("Job$u0020ID") === end("Job$u0020ID")).
+    start.joinWith(end, start("Job ID") === end("Job ID")).
       map(tuple => {
         val jobId = tuple._1.`Job ID`
-        val jobStartTime = tuple._1.`Submission$u0020Time`
-        val jobEndTime = tuple._2.`Completion$u0020Time`
-        val stages = tuple._1.`Stage$u0020IDs`
+        val jobStartTime = tuple._1.`Submission Time`
+        val jobEndTime = tuple._2.`Completion Time`
+        val stages = tuple._1.`Stage IDs`
         val jobDuration = jobEndTime - jobStartTime
-        val result = tuple._2.`Job$u0020Result`.`Result`
+        val result = tuple._2.`Job Result`.`Result`
         Job(sparkApplication.applicationId,
           sparkApplication.applicationName,
           jobId,
@@ -116,21 +116,21 @@ object Parser {
     events.filter(_.contains("SparkListenerStageCompleted")).
       map(string => parseJSON[SparkStageComplete](string)).
       map(stage => {
-        val stageInfo = stage.`Stage$u0020Info`
-        val stageId = stageInfo.`Stage$u0020ID`
+        val stageInfo = stage.`Stage Info`
+        val stageId = stageInfo.`Stage ID`
         val job = jobs.filter(j => j.stages.contains(stageId)).last
         val jobId = job.jobId
-        val attempt = stageInfo.`Stage$u0020Attempt$u0020ID`
-        val stageName = stageInfo.`Stage$u0020Name`
+        val attempt = stageInfo.`Stage Attempt ID`
+        val stageName = stageInfo.`Stage Name`
         val details = stageInfo.`Details`
-        val taskCount = stageInfo.`Number$u0020of$u0020Tasks`
-        val rddCount = stageInfo.`RDD$u0020Info`.size
+        val taskCount = stageInfo.`Number of Tasks`
+        val rddCount = stageInfo.`RDD Info`.size
         val applicationStartTime = job.applicationStartTime
         val applicationEndTime = job.applicationEndTime
         val jobStartTime = job.jobStartTime
         val jobEndTime = job.jobEndTime
-        val stageStartTime = stageInfo.`Submission$u0020Time`
-        val stageEndTime = stageInfo.`Completion$u0020Time`
+        val stageStartTime = stageInfo.`Submission Time`
+        val stageEndTime = stageInfo.`Completion Time`
         val stageDuration = stageEndTime - stageStartTime
         val jobDuration = job.jobDuration
         val applicationDuration = job.applicationDuration
@@ -160,13 +160,13 @@ object Parser {
       map(string => parseJSON[SparkTaskEnd](string))
 
     val joined = tasks.joinWith(sparkStage,
-      tasks("Stage$u0020ID") === sparkStage("stageId") &&
-        tasks("Stage$u0020Attempt$u0020ID") === sparkStage("stageAttemptId"))
+      tasks("Stage ID") === sparkStage("stageId") &&
+        tasks("Stage Attempt ID") === sparkStage("stageAttemptId"))
       joined.map(tuple => {
         val applicationId = tuple._2.applicationId
         val applicationName = tuple._2.applicationName
-        val taskInfo = tuple._1.`Task$u0020Info`
-        val taskMetrics = tuple._1.`Task$u0020Metrics`
+        val taskInfo = tuple._1.`Task Info`
+        val taskMetrics = tuple._1.`Task Metrics`
         val accumulableMemory = taskInfo.`Accumulables`.
           filter(_.`Name` == "peakExecutionMemory").
           map(i => i.`Value`.toLong)
@@ -182,10 +182,10 @@ object Parser {
         val jobId = tuple._2.jobId
         val stageId = tuple._2.stageId
         val stageAttemptId = tuple._2.stageAttemptId
-        val taskId = taskInfo.`Task$u0020ID`
+        val taskId = taskInfo.`Task ID`
         val taskType = tuple._1.`Task Type`
         val attempt = taskInfo.`Attempt`
-        val executorId = taskInfo.`Executor$u0020ID`
+        val executorId = taskInfo.`Executor ID`
         val host = taskInfo.`Host`
         val stageName = tuple._2.stageName
         val locality = taskInfo.`Locality`
@@ -196,67 +196,67 @@ object Parser {
         val jobEndTime = tuple._2.jobEndTime
         val stageStartTime = tuple._2.stageStartTime
         val stageEndTime = tuple._2.stageEndTime
-        val taskStartTime = taskInfo.`Launch$u0020Time`
-        val taskEndTime = taskInfo.`Finish$u0020Time`
+        val taskStartTime = taskInfo.`Launch Time`
+        val taskEndTime = taskInfo.`Finish Time`
         val failed = taskInfo.`Failed`
         val taskDuration = taskEndTime - taskStartTime
         val stageDuration = tuple._2.stageDuration
         val jobDuration = tuple._2.jobDuration
         val applicationDuration = tuple._2.applicationDuration
-        val gettingResultTime = taskInfo.`Getting$u0020Result$u0020Time`
+        val gettingResultTime = taskInfo.`Getting Result Time`
 
-        val gcTime = if (taskMetrics nonEmpty) taskMetrics.get.`JVM$u0020GC$u0020Time` else 0
-        val resultSerializationTime = if (taskMetrics nonEmpty) taskMetrics.get.`Result$u0020Serialization$u0020Time` else 0
-        val resultSize = if (taskMetrics nonEmpty) taskMetrics.get.`Result$u0020Size` else 0
-        val memoryBytesSpilled = if (taskMetrics nonEmpty) taskMetrics.get.Memory$u0020Bytes$u0020Spilled else 0
-        val diskBytesSpilled = if (taskMetrics nonEmpty) taskMetrics.get.`Disk$u0020Bytes$u0020Spilled` else 0
+        val gcTime = if (taskMetrics nonEmpty) taskMetrics.get.`JVM GC Time` else 0
+        val resultSerializationTime = if (taskMetrics nonEmpty) taskMetrics.get.`Result Serialization Time` else 0
+        val resultSize = if (taskMetrics nonEmpty) taskMetrics.get.`Result Size` else 0
+        val memoryBytesSpilled = if (taskMetrics nonEmpty) taskMetrics.get.`Memory Bytes Spilled` else 0
+        val diskBytesSpilled = if (taskMetrics nonEmpty) taskMetrics.get.`Disk Bytes Spilled` else 0
 
-        val inputMetrics = if (taskMetrics nonEmpty) taskMetrics.get.`Input$u0020Metrics` else None
-        val shuffleWriteMetrics = if (taskMetrics nonEmpty) taskMetrics.get.`Shuffle$u0020Write$u0020Metrics` else None
-        val shuffleReadMetrics = if (taskMetrics nonEmpty) taskMetrics.get.`Shuffle$u0020Read$u0020Metrics` else None
+        val inputMetrics = if (taskMetrics nonEmpty) taskMetrics.get.`Input Metrics` else None
+        val shuffleWriteMetrics = if (taskMetrics nonEmpty) taskMetrics.get.`Shuffle Write Metrics` else None
+        val shuffleReadMetrics = if (taskMetrics nonEmpty) taskMetrics.get.`Shuffle Read Metrics` else None
 
-        val dataReadMethod = if (inputMetrics nonEmpty) inputMetrics.get.Data$u0020Read$u0020Method else "n/a"
-        val bytesRead = if (inputMetrics nonEmpty) inputMetrics.get.Bytes$u0020Read else 0L
+        val dataReadMethod = if (inputMetrics nonEmpty) inputMetrics.get.`Data Read Method` else "n/a"
+        val bytesRead = if (inputMetrics nonEmpty) inputMetrics.get.`Bytes Read` else 0L
         val recordsRead =
           inputMetrics match {
             case None => 0L
-            case Some(_) => inputMetrics.get.`Records$u0020Read`}
+            case Some(_) => inputMetrics.get.`Records Read`}
         val shuffleBytesWritten =
           shuffleWriteMetrics match {
             case None => 0L
-            case Some(_) => shuffleWriteMetrics.get.`Shuffle$u0020Bytes$u0020Written`}
+            case Some(_) => shuffleWriteMetrics.get.`Shuffle Bytes Written`}
         val shuffleRecordsWritten =
           shuffleWriteMetrics match {
             case None => 0L
-            case Some(_) => shuffleWriteMetrics.get.`Shuffle$u0020Records$u0020Written`}
+            case Some(_) => shuffleWriteMetrics.get.`Shuffle Records Written`}
         val shuffleWriteTime =
           shuffleWriteMetrics match {
             case None => 0L
-            case Some(_) => shuffleWriteMetrics.get.`Shuffle$u0020Write$u0020Time`}
+            case Some(_) => shuffleWriteMetrics.get.`Shuffle Write Time`}
         val remoteBlocksFetched =
           shuffleReadMetrics match {
             case None => 0L
-            case Some(_) => shuffleReadMetrics.get.`Remote$u0020Blocks$u0020Fetched`}
+            case Some(_) => shuffleReadMetrics.get.`Remote Blocks Fetched`}
         val localBlocksFetched =
           shuffleReadMetrics match {
             case None => 0L
-            case Some(_) => shuffleReadMetrics.get.`Local$u0020Blocks$u0020Fetched`}
+            case Some(_) => shuffleReadMetrics.get.`Local Blocks Fetched`}
         val fetchWaitTime =
           shuffleReadMetrics match {
             case None => 0L
-            case Some(_) => shuffleReadMetrics.get.`Fetch$u0020Wait$u0020Time`}
+            case Some(_) => shuffleReadMetrics.get.`Fetch Wait Time`}
         val remoteBytesRead =
           shuffleReadMetrics match {
             case None => 0L
-            case Some(_) => shuffleReadMetrics.get.`Remote$u0020Bytes$u0020Read`}
+            case Some(_) => shuffleReadMetrics.get.`Remote Bytes Read`}
         val localBytesRead =
           shuffleReadMetrics match {
             case None => 0L
-            case Some(_) => shuffleReadMetrics.get.`Local$u0020Bytes$u0020Read`}
+            case Some(_) => shuffleReadMetrics.get.`Local Bytes Read`}
         val totalRecordsRead =
           shuffleReadMetrics match {
             case None => 0L
-            case Some(_) => shuffleReadMetrics.get.`Total$u0020Records$u0020Read`}
+            case Some(_) => shuffleReadMetrics.get.`Total Records Read`}
         Task(applicationId,
           applicationName,
           jobId,

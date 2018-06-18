@@ -10,7 +10,7 @@ enablePlugins(JavaAppPackaging)
 
 val hadoopVersion = "2.6.0"
 
-val sparkVersion = "2.0.1"
+val sparkVersion = "2.3.1"
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion % "provided"
 
@@ -24,6 +24,10 @@ libraryDependencies += "org.scalatest" % "scalatest_2.11" % "3.0.0"
 
 // The dependency override for http://stackoverflow.com/questions/33815396/spark-com-fasterxml-jackson-module-error
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.2"
+
+libraryDependencies += "org.json4s" %% "json4s-native" % "3.5.0"
+
+libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.0"
 
 // The dependency override for javax.servelet is due to a conflict between Hadoop and Spark's
 // respective dependencies on the library with differnet versions.
