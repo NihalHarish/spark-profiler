@@ -41,6 +41,4 @@ object Profiler {
         "shuffleWriteTime", "remoteBlocksFetched", "localBlocksFetched",
         "fetchWaitTime", "remoteBytesRead", "localBytesRead", "totalRecordsRead")
   }
-
-
 }

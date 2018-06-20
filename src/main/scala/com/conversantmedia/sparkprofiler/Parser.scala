@@ -7,7 +7,7 @@ import org.json4s.jackson.JsonMethods._
 /**
   * Parser does all the work of parsing events from the application events file.
   */
-object  Parser {
+object Parser {
 
   def parseJSON[T](json: String)(implicit t: Manifest[T]): T = {
     implicit val formats = DefaultFormats
@@ -215,7 +215,7 @@ object  Parser {
         val shuffleWriteMetrics = if (taskMetrics nonEmpty) taskMetrics.get.`Shuffle Write Metrics` else None
         val shuffleReadMetrics = if (taskMetrics nonEmpty) taskMetrics.get.`Shuffle Read Metrics` else None
 
-        val dataReadMethod = if (inputMetrics nonEmpty) inputMetrics.get.`Data Read Method` else "n/a"
+        val dataReadMethod = "n/a"
         val bytesRead = if (inputMetrics nonEmpty) inputMetrics.get.`Bytes Read` else 0L
         val recordsRead =
           inputMetrics match {

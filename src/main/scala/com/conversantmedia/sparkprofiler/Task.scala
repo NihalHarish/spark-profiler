@@ -73,22 +73,27 @@ private case class TaskInfo(`Task ID`: Int,
                     `Accumulables`: Seq[SparkAccumulable]
                    )
 
-private case class TaskMetrics(`Host Name`: String,
+private case class TaskMetrics(
                        `Executor Deserialize Time`: Long,
+                       `Executor Deserialize CPU Time`: Long,
                        `Executor Run Time`: Long,
+                       `Executor CPU Time`: Long,
                        `Result Size`: Long,
                        `JVM GC Time`: Long,
                        `Result Serialization Time`: Long,
                        `Memory Bytes Spilled`: Long,
                        `Disk Bytes Spilled`: Long,
                        `Input Metrics`: Option[InputMetrics],
+                       `Output Metrics`: Option[OutputMetrics],
                        `Shuffle Write Metrics`: Option[SparkShuffleWriteMetrics],
                        `Shuffle Read Metrics`: Option[SparkShuffleReadMetrics]
                       )
 
-private case class InputMetrics(`Data Read Method`: String,
-                        `Bytes Read`: Long,
-                        `Records Read`: Long)
+private case class InputMetrics(`Bytes Read`: Long,
+                                `Records Read`: Long)
+
+private case class OutputMetrics(`Bytes Written`: Long,
+                                `Records Written`: Long)
 
 private case class SparkShuffleWriteMetrics(`Shuffle Bytes Written`: Long,
                                     `Shuffle Write Time`: Long,
@@ -99,6 +104,8 @@ private case class SparkShuffleReadMetrics(`Remote Blocks Fetched`: Long,
                                    `Local Blocks Fetched`: Long,
                                    `Fetch Wait Time`: Long,
                                    `Remote Bytes Read`: Long,
+                                   `Remote Bytes Read To Disk`: Long,
                                    `Local Bytes Read`: Long,
                                    `Total Records Read`: Long
                                   )
+
